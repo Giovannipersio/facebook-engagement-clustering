@@ -44,11 +44,21 @@ The engagement variables include reactions, comments, shares, likes, loves, wows
 
 ```text
 facebook-engagement-clustering/
+|-- artifacts/                    # Fitted preprocessing and modeling objects
+|-- data/
+|   |-- processed/                # Reproducible derived datasets
+|   `-- raw/                      # Locally collected source data
 |-- notebooks/
-|   `-- facebook_engagement_clustering.ipynb
+|   |-- 01_data_collection_and_understanding.ipynb
+|   |-- 02_data_preprocessing.ipynb
+|   |-- 03_dimensionality_reduction.ipynb
+|   `-- 04_clustering_model_comparison.ipynb
+|-- reports/
+|   `-- figures/                  # Generated analysis figures
 |-- src/                         # Reusable analysis utilities
-|-- requirements.txt
-|-- make_env.py
+|-- .python-version              # Python version used by uv
+|-- pyproject.toml               # Project metadata and direct dependencies
+|-- uv.lock                      # Fully resolved dependency lockfile
 |-- .gitignore
 `-- README.md
 ```
@@ -105,41 +115,42 @@ git clone https://github.com/Giovannipersio/facebook-engagement-clustering.git
 cd facebook-engagement-clustering
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Synchronize the project environment
+
+Install [uv](https://docs.astral.sh/uv/) and synchronize the locked environment:
 
 ```bash
-python -m venv venv
+uv sync --locked
 ```
 
-Windows:
+This command installs the requested Python version when necessary, creates
+`.venv`, and installs the exact dependency versions recorded in `uv.lock`.
+
+### 3. Run the notebooks
+
+Start JupyterLab inside the project environment:
 
 ```bash
-venv\Scripts\activate
+uv run jupyter lab
 ```
 
-Linux/macOS:
+When using VS Code, select `.venv/Scripts/python.exe` on Windows or
+`.venv/bin/python` on Linux/macOS as the notebook kernel.
 
-```bash
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the notebook
-
-Open and execute:
+Execute the notebooks in order:
 
 ```text
-notebooks/facebook_engagement_clustering.ipynb
+notebooks/01_data_collection_and_understanding.ipynb
+notebooks/02_data_preprocessing.ipynb
+notebooks/03_dimensionality_reduction.ipynb
+notebooks/04_clustering_model_comparison.ipynb
 ```
 
-The notebook downloads the dataset from UCI, preprocesses the features, performs dimensionality reduction, compares clustering models, and generates the evaluation visualizations.
+The workflow downloads the UCI dataset, preprocesses its features, performs
+dimensionality reduction, compares clustering models, and persists the
+resulting diagnostics and artifacts.
 
-## Requirements
+## Dependencies
 
 Main libraries used in this project:
 
@@ -148,12 +159,13 @@ Main libraries used in this project:
 | `numpy`, `pandas` | Data manipulation and numerical operations |
 | `matplotlib`, `seaborn` | Data and cluster visualization |
 | `scikit-learn` | Preprocessing, PCA, t-SNE, clustering, and metrics |
-| `missingno` | Missing-value visualization |
 | `ucimlrepo` | Dataset download |
 | `tqdm` | Progress tracking during parameter searches |
-| `ipykernel` | Notebook execution |
+| `joblib` | Fitted transformer and model persistence |
+| `ipykernel`, `jupyterlab` | Notebook development and execution |
 
-See `requirements.txt` for dependency specifications.
+Direct dependencies are declared in `pyproject.toml`. Exact resolved versions
+are stored in `uv.lock`; both files should be committed to version control.
 
 ## Limitations
 
