@@ -1,112 +1,123 @@
 # Facebook Engagement Clustering
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![uv](https://img.shields.io/badge/dependencies-uv-DE5FE9?style=flat)](https://docs.astral.sh/uv/)
 [![scikit-learn](https://img.shields.io/badge/ML-scikit--learn-F7931E?style=flat&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
-[![UCI](https://img.shields.io/badge/Dataset-UCI-2C3E50?style=flat)](https://archive.ics.uci.edu/dataset/488/facebook+live+sellers+in+thailand)
-[![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=flat)](https://github.com/Giovannipersio/facebook-engagement-clustering)
+[![Dataset](https://img.shields.io/badge/dataset-UCI%20488-2C3E50?style=flat)](https://archive.ics.uci.edu/dataset/488/facebook+live+sellers+in+thailand)
+[![Status](https://img.shields.io/badge/status-complete-2EA44F?style=flat)](https://github.com/Giovannipersio/facebook-engagement-clustering)
 
-## Overview
+An end-to-end unsupervised machine learning project that identifies and
+interprets engagement patterns in Facebook posts published by Thai fashion and
+cosmetics sellers.
 
-This repository contains an unsupervised machine learning project for exploring engagement patterns in Facebook posts published by Thai fashion and cosmetics sellers.
-
-The workflow covers data preprocessing, feature encoding and scaling, dimensionality reduction with Principal Component Analysis (PCA), cluster visualization with t-SNE, and the comparison of K-Means, Agglomerative Clustering, and DBSCAN using the Silhouette Score.
+The project collects the UCI dataset, builds a validated modeling matrix,
+reduces its dimensionality with PCA, compares three clustering families, tests
+assignment stability, and translates the selected groups into content and
+engagement profiles.
 
 ## Project Objective
 
-The objective is to identify groups of Facebook posts with similar engagement behavior based on reactions, comments, shares, content type, and publishing time.
+The objective is to discover groups of posts with similar behavior using:
 
-The analysis aims to:
+- reactions, comments, and shares;
+- the composition of Facebook reactions;
+- publication type;
+- month, weekday, and time of publication.
 
-- preprocess numerical, categorical, and temporal features;
-- reduce the dimensionality of the feature space while preserving relevant information;
-- compare clustering algorithms and hyperparameter configurations;
-- evaluate cluster cohesion and separation;
-- interpret patterns associated with engagement and post type.
+This is an exploratory segmentation task. Cluster membership describes
+patterns in the observed data and does not establish causal effects.
 
-## Dataset
+## Key Results
 
-The project uses the [Facebook Live Sellers in Thailand](https://archive.ics.uci.edu/dataset/488/facebook+live+sellers+in+thailand) dataset from the UCI Machine Learning Repository. The notebook downloads it through the `ucimlrepo` package.
-
-The dataset contains Facebook posts from 10 Thai fashion and cosmetics sellers, including photos, videos, status updates, and links.
-
-| Item | Value |
+| Item | Result |
 | --- | ---: |
-| Rows | 7,050 |
-| Original features used | 11 |
-| Numerical engagement features | 9 |
-| Categorical features | 1 |
-| Temporal feature | 1 |
-| Missing values | None |
+| Observations | 7,050 |
+| Modeling features | 19 |
+| PCA components retained | 10 |
+| Cumulative variance retained | 87.79% |
+| Candidate configurations evaluated | 122 |
+| Selected model | Agglomerative Clustering |
+| Selected number of clusters | 2 |
+| Silhouette Score | 0.364 |
+| Mean perturbation ARI | 0.967 |
 
-The engagement variables include reactions, comments, shares, likes, loves, wows, hahas, sads, and angry reactions.
+The solution is stable under small perturbations but strongly imbalanced. Its
+Silhouette Score indicates moderate separation, so the profiles should be
+interpreted together with cluster sizes and domain context.
+
+| Cluster | Posts | Share | Typical profile |
+| ---: | ---: | ---: | --- |
+| 0 | 5,913 | 83.87% | Lower typical engagement; 71.54% photos |
+| 1 | 1,137 | 16.13% | Higher comments and shares; 94.55% videos |
+
+Content type has a strong association with cluster membership
+(`Cramér's V = 0.573`). Weekday and publication daypart have negligible
+associations in this sample.
+
+![Relative engagement profile by cluster](reports/figures/cluster_engagement_profiles.png)
+
+![Content-type distribution by cluster](reports/figures/cluster_status_type_distribution.png)
+
+## Workflow
+
+```mermaid
+flowchart LR
+    UCI["UCI dataset 488"] --> N1["01 Collection and understanding"]
+    N1 --> RAW["Raw data"]
+    RAW --> N2["02 Preprocessing"]
+    N2 --> MATRIX["Validated model matrix"]
+    MATRIX --> N3["03 PCA"]
+    N3 --> SCORES["10-component PCA scores"]
+    SCORES --> N4["04 Model comparison"]
+    N4 --> LABELS["Selected cluster labels"]
+    LABELS --> N5["05 Analysis and conclusion"]
+    N5 --> REPORTS["Profiles, figures, and conclusions"]
+```
+
+| Notebook | Responsibility | Main outputs |
+| --- | --- | --- |
+| [01 — Data collection and understanding](notebooks/01_data_collection_and_understanding.ipynb) | Download and validate the UCI feature table | Raw dataset |
+| [02 — Data preprocessing](notebooks/02_data_preprocessing.ipynb) | Engineer temporal features, encode categories, transform skewed variables, and validate the matrix | Cleaned data, model matrix, fitted preprocessor |
+| [03 — Dimensionality reduction](notebooks/03_dimensionality_reduction.ipynb) | Select and interpret the PCA representation | PCA scores, variance table, component weights, fitted PCA |
+| [04 — Clustering model comparison](notebooks/04_clustering_model_comparison.ipynb) | Evaluate K-Means, Agglomerative Clustering, and DBSCAN under quality and stability rules | Candidate metrics, selected labels, fitted model |
+| [05 — Cluster analysis and conclusion](notebooks/05_cluster_analysis_and_conclusion.ipynb) | Profile the selected groups and document conclusions and limitations | Cluster profiles, association measures, final figures |
 
 ## Repository Structure
 
 ```text
 facebook-engagement-clustering/
-|-- artifacts/                    # Fitted preprocessing and modeling objects
+|-- artifacts/                     # Fitted preprocessing and model objects
 |-- data/
-|   |-- processed/                # Reproducible derived datasets
-|   `-- raw/                      # Locally collected source data
+|   |-- raw/                       # Collected source snapshot
+|   `-- processed/                 # Reproducible analytical datasets
+|-- docs/
+|   |-- data-and-artifacts.md      # Data dictionary and output catalog
+|   |-- methodology.md             # Detailed analytical decisions
+|   `-- results-and-limitations.md # Interpretation and responsible-use notes
 |-- notebooks/
 |   |-- 01_data_collection_and_understanding.ipynb
 |   |-- 02_data_preprocessing.ipynb
 |   |-- 03_dimensionality_reduction.ipynb
-|   `-- 04_clustering_model_comparison.ipynb
-|-- reports/
-|   `-- figures/                  # Generated analysis figures
-|-- src/                         # Reusable analysis utilities
-|-- .python-version              # Python version used by uv
-|-- pyproject.toml               # Project metadata and direct dependencies
-|-- uv.lock                      # Fully resolved dependency lockfile
-|-- .gitignore
+|   |-- 04_clustering_model_comparison.ipynb
+|   `-- 05_cluster_analysis_and_conclusion.ipynb
+|-- reports/figures/               # Generated visual diagnostics
+|-- src/                           # Reusable, domain-independent utilities
+|-- .python-version
+|-- pyproject.toml
+|-- uv.lock
 `-- README.md
 ```
 
-## Methodology
+## Reproduce the Project
 
-### 1. Data Preprocessing
+### Prerequisites
 
-The publication timestamp is decomposed into year, month, day, hour, and weekday features. Categorical variables are transformed with one-hot encoding, and the resulting feature matrix is standardized with `StandardScaler` before dimensionality reduction and clustering.
+- Git;
+- [uv](https://docs.astral.sh/uv/).
 
-| Feature Type | Strategy |
-| --- | --- |
-| Publication timestamp | Extraction of calendar and time features |
-| Categorical features | One-hot encoding |
-| Numerical features | Standard scaling |
-| Missing values | Completeness check |
-
-### 2. Dimensionality Reduction
-
-PCA is applied to reduce the feature space to 15 principal components, preserving approximately 85% of the cumulative variance. Two-dimensional t-SNE projections are also used to inspect the resulting clusters visually.
-
-### 3. Clustering
-
-Three clustering approaches are evaluated:
-
-- **K-Means:** the number of clusters is investigated using inertia, the elbow method, and silhouette analysis.
-- **Agglomerative Clustering:** combinations of cluster count, distance metric, and linkage method are compared.
-- **DBSCAN:** `eps` and `min_samples` configurations are tested to identify density-based structures and noise.
-
-### 4. Evaluation
-
-The models are compared primarily with the Silhouette Score. Silhouette plots, reordered distance matrices, cluster profiles, post-type distributions, PCA projections, and t-SNE visualizations complement the numerical evaluation.
-
-## Results
-
-PCA reduced the data to 15 components while retaining approximately 85% of its cumulative variance.
-
-| Model | Configuration | Silhouette Score |
-| --- | --- | ---: |
-| Agglomerative Clustering | 2 clusters, Manhattan distance, average linkage | 0.8191 |
-| K-Means | 11 clusters | 0.3320 |
-| DBSCAN | `eps=1.9`, `min_samples=5` | 0.3022 |
-
-Agglomerative Clustering obtained the highest score, but its result was strongly imbalanced, with most observations assigned to one cluster. The score must therefore be interpreted alongside cluster sizes, individual silhouette values, and domain relevance rather than as conclusive evidence of the best segmentation.
-
-The exploratory profiles indicate differences in engagement levels, content types, and publication timing across groups. High-engagement clusters are often associated with photos or videos, while other groups contain posts with lower interaction levels.
-
-## How to Reproduce
+The required Python version and all direct dependencies are declared in the
+project files. A separate manual Python installation is usually unnecessary
+because uv can install the requested interpreter.
 
 ### 1. Clone the repository
 
@@ -115,79 +126,89 @@ git clone https://github.com/Giovannipersio/facebook-engagement-clustering.git
 cd facebook-engagement-clustering
 ```
 
-### 2. Synchronize the project environment
-
-Install [uv](https://docs.astral.sh/uv/) and synchronize the locked environment:
+### 2. Create and synchronize the environment
 
 ```bash
 uv sync --locked
 ```
 
-This command installs the requested Python version when necessary, creates
-`.venv`, and installs the exact dependency versions recorded in `uv.lock`.
+This creates `.venv` and installs the exact versions recorded in `uv.lock`.
 
-### 3. Run the notebooks
-
-Start JupyterLab inside the project environment:
+### 3. Start JupyterLab
 
 ```bash
 uv run jupyter lab
 ```
 
-When using VS Code, select `.venv/Scripts/python.exe` on Windows or
-`.venv/bin/python` on Linux/macOS as the notebook kernel.
+In VS Code, select the interpreter inside `.venv` as the notebook kernel:
 
-Execute the notebooks in order:
+- Windows: `.venv/Scripts/python.exe`
+- Linux or macOS: `.venv/bin/python`
+
+### 4. Run the notebooks in order
 
 ```text
-notebooks/01_data_collection_and_understanding.ipynb
-notebooks/02_data_preprocessing.ipynb
-notebooks/03_dimensionality_reduction.ipynb
-notebooks/04_clustering_model_comparison.ipynb
+01_data_collection_and_understanding.ipynb
+02_data_preprocessing.ipynb
+03_dimensionality_reduction.ipynb
+04_clustering_model_comparison.ipynb
+05_cluster_analysis_and_conclusion.ipynb
 ```
 
-The workflow downloads the UCI dataset, preprocesses its features, performs
-dimensionality reduction, compares clustering models, and persists the
-resulting diagnostics and artifacts.
+Each notebook validates the artifacts it consumes and saves the outputs needed
+by the next stage. Operational messages use structured logging, while tables
+and plots remain notebook outputs.
 
-## Dependencies
+## Methodological Safeguards
 
-Main libraries used in this project:
+- Raw and processed tables are joined through a persistent `record_id` with
+  one-to-one validation.
+- Missing values, duplicated columns, negative engagement counts, and infinite
+  model values are checked explicitly.
+- Exact feature duplicates are retained because the source feature table does
+  not include post or seller identifiers.
+- The aggregate `num_reactions` field is excluded from the model matrix to
+  avoid duplicating information already present in the individual reactions.
+- Model selection considers cluster size, coverage, three internal metrics,
+  and perturbation stability rather than the Silhouette Score alone.
+- Randomized operations use a fixed seed for reproducibility.
+
+## Documentation
+
+- [Methodology](docs/methodology.md)
+- [Data dictionary and artifact catalog](docs/data-and-artifacts.md)
+- [Results, interpretation, and limitations](docs/results-and-limitations.md)
+
+## Main Dependencies
 
 | Library | Purpose |
 | --- | --- |
-| `numpy`, `pandas` | Data manipulation and numerical operations |
-| `matplotlib`, `seaborn` | Data and cluster visualization |
-| `scikit-learn` | Preprocessing, PCA, t-SNE, clustering, and metrics |
-| `ucimlrepo` | Dataset download |
-| `tqdm` | Progress tracking during parameter searches |
-| `joblib` | Fitted transformer and model persistence |
-| `ipykernel`, `jupyterlab` | Notebook development and execution |
+| `pandas`, `numpy` | Data manipulation and numerical analysis |
+| `scikit-learn` | Preprocessing, PCA, clustering, and evaluation |
+| `matplotlib`, `seaborn` | Analytical visualizations |
+| `ucimlrepo` | Dataset collection |
+| `joblib` | Persistence of fitted objects |
+| `tqdm` | Progress reporting during model search |
+| `jupyterlab`, `ipykernel` | Notebook execution environment |
 
-Direct dependencies are declared in `pyproject.toml`. Exact resolved versions
-are stored in `uv.lock`; both files should be committed to version control.
+Dependencies are managed through `pyproject.toml` and locked in `uv.lock`.
 
-## Limitations
+## Responsible Interpretation
 
-- The analysis uses a single dataset from a specific commercial and geographic context.
-- The data represents posts from only 10 Facebook sellers.
-- A high average Silhouette Score may conceal highly imbalanced or very small clusters.
-- t-SNE projections are intended for visual exploration and do not preserve every high-dimensional relationship.
-- The identified groups require business and domain validation before being used in marketing decisions.
+The dataset covers a specific commercial, geographic, and historical context.
+It does not contain seller identity, audience size, reach, impressions, or paid
+promotion information. The observed video-dominant high-engagement group is
+therefore a hypothesis for controlled experimentation, not evidence that video
+format alone causes higher engagement.
 
-## Next Steps
+The selected agglomerative model also has no native `predict` method. If future
+posts must be assigned automatically, evaluate the stable K-Means alternative
+or train a separate classifier to reproduce the selected labels.
 
-- Refactor the original academic notebook into a reproducible portfolio notebook.
-- Move reusable preprocessing, visualization, and evaluation functions into `src/`.
-- Add cluster-size and stability analyses to complement the Silhouette Score.
-- Improve cluster interpretation with systematic feature profiles.
-- Compare additional dimensionality-reduction and clustering techniques.
-- Add automated checks for notebook reproducibility and code quality.
+## Authors
 
-## Author
+Portfolio revision and repository maintenance by **Giovanni Persio**.
 
-Developed by **Giovanni Persio**.
-
-The original academic project was developed in collaboration with **Rodrigo Corrêa Fardin** and **Marcelo Alves Otaviano Botelho** as part of a data science specialization course.
-
-This repository is a portfolio-oriented revision focused on unsupervised learning, dimensionality reduction, clustering evaluation, and reproducible data analysis.
+The original academic project was developed with **Rodrigo Corrêa Fardin** and
+**Marcelo Alves Otaviano Botelho** as part of a data science specialization
+course.
